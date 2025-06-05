@@ -1,0 +1,88 @@
+---
+title: "Animated Movie Analysis"
+author: "Josh Garzaniti"
+date: "2025-06-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Loading in Libraries
+```{r}
+library(tidyr)
+library(tidyselect)
+library(tidyverse)
+library(ggplot2)
+library(ggdark)
+library(dplyr)
+```
+##Load in Data
+
+```{r}
+Movies = read.csv("G:/My Drive/Personal Projects/movies.csv")
+
+Reviews = read.csv("G:/My Drive/Personal Projects/critic_reviews.csv")
+
+```
+
+##Run summary on initial data
+
+```{r}
+summary(Movies)
+```
+
+```{r}
+summary(Reviews)
+```
+
+##Join the two together
+
+```{r}
+Movies_with_Reviews = Movies%>%
+  left_join(Reviews, by = "movieId")
+
+summary(Movies_with_Reviews)
+```
+##Clean up the df
+
+```{r}
+Movies_with_Reviews = Movies_with_Reviews%>%
+  select(-movieId, -movieURL, -creationDate, -criticPageUrl, -isRtUrl, -publicationUrl, -reviewUrl)
+
+Movies_with_Reviews
+```
+
+##Changing some data types and updating observations to be the right values
+
+```{r}
+str(Movies_with_Reviews)
+
+Movies_with_Reviews = Movies_with_Reviews%>%
+  mutate(critic_score = str_extract(critic_score, pattern = "\\d+(?=%)"))%>%
+  mutate(audience_score = str_extract(audience_score, pattern = "\\d+(?=%)"))%>%
+  mutate(movieYear = as.factor(movieYear))%>%
+  mutate(movieRank = as.ordered(movieRank))%>%
+  mutate(critic_score = as.numeric(critic_score))%>%
+  mutate(audience_score = as.numeric(audience_score))%>%
+  mutate(isFresh = ifelse(reviewState == "fresh", 1,0))%>%
+  mutate(isRotten = ifelse(reviewState == "rotten", 1, 0))%>%
+  mutate(reviewState = as.factor(reviewState))%>%
+  mutate(isFresh = as.numeric(isFresh))%>%
+  mutate(isRotten = as.numeric(isRotten))%>%
+  mutate(isTopCritic = ifelse(isTopCritic == "True", 1, 0))%>%
+  mutate(scoreSentiment = as.factor(scoreSentiment))
+
+Movies_with_Reviews
+```
+
+##Run some simple correlation tests between review states, scores, and ranks of different movies, years, and critics to see if there's any basic patterns 
+
+```{r}
+
+```
+
+
+
+
