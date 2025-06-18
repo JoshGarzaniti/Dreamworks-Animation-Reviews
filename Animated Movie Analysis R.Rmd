@@ -111,6 +111,109 @@ Movies_with_critics
 
 If we look at this we can see the top 888 rows are critics that all gave completely fresh ratings. This might be a misconception though, because look at how few some of their historical reviews are...some only have 1 or 2 movies reviewed. Let's maybe think about setting a threshold here to filter out critics how haven't reviewed at least 10 movies.
 
+##Filtering out critics who haven't reviewed at least 10 movies
+```{r}
+Movies_with_critics = Movies_with_critics%>%
+  filter(total_reviews >= 10)
+
+Movies_with_critics
+```
+We can see that our sample size has now decreased from 1700 critics to 203, which is very substantial.
+
+Here we can see some critics that have reviewed 10+ movies and have only given out fresh reviews, while the harshest critics (with at least 10 reviews) generally fall around the 20 - 30% fresh range.
+
+What's the Average general rate of "Freshness" for animated movies among reviewers with at least 10 movies in this data:
+
+```{r}
+average_general_rtg = mean(Movies_with_critics$percent_fresh)
+
+average_general_rtg
+
+average_general_review_nbr = mean(Movies_with_critics$total_reviews)
+
+average_general_review_nbr
+```
+The average rate that an animated movie will be fresh in this data (from those who have reviewed at least 10 movies) is 71.38%, and the average number of animated movies reviewed is 17.....not bad.
+
+
+## What if we only looked at "top critics" 
+
+After all top critics are supposed to be the models for the industry so let's see what they have to say about animated movies
+
+```{r}
+Top_critics = Movies_with_Reviews%>%
+  filter(isTopCritic == 1)%>%
+  group_by(criticName)%>%
+  summarise(
+    total_reviews = n(),
+    percent_fresh = mean(reviewState == "fresh")*100)%>%
+  arrange(desc(percent_fresh))
+
+Top_critics
+```
+##Data exploration of Top Critics
+```{r}
+average_top_rtg = mean(Top_critics$percent_fresh)
+
+average_top_rtg
+
+average_top_review_nbr = mean(Top_critics$total_reviews)
+
+average_top_review_nbr
+```
+We can see here that "top critics" are a little harsher on animated movies as a whole. They give fresh ratings ~3% less of the time and have reviewed on average ~13 less unique animated films (from this data).....might be a bias against animation as a whole.
+
+We'll come back to specific critics to analyze their opinions more in depth but first I want to look at Publications.....is there a bias within certain publications against animated films?
+
+##Publications
+```{r}
+Publications_Overview = Movies_with_Reviews%>% 
+  group_by(publicationName)%>% 
+  summarise(
+    NumberFresh  = sum(isFresh,  na.rm = TRUE),
+    NumberRotten = sum(isRotten, na.rm = TRUE),
+    FreshPercent = NumberFresh / (NumberFresh + NumberRotten),
+    .groups = "drop")%>%
+  arrange(desc(FreshPercent))
+
+Publications_Overview
+```
+Now we can see the publication sponsors of critics and how they as a body view animated movies (because usually more than on critic works for each organization...usually). 
+
+How many publications are there with 0 rotten reviews of animated movies?
+```{r}
+always_fresh_publications = Publications_Overview%>%
+  filter(NumberRotten == 0)
+
+nrow(always_fresh_publications)
+```
+453 of the 1047 major publications(or 43.27%) had no rotten reviews at all in this data...wild, but still in the minority statistically. Let's filter publications for at least 10 reviews like we did with individual critics just to get a baseline...
+
+##Filtering out publications that didn't have at least 10 total reviews
+```{r}
+Publications_10_reviews = Publications_Overview%>%
+  filter(NumberFresh + NumberRotten >= 10)
+
+Publications_10_reviews
+```
+
+Only 249 of the 1047 total Publications (23.80%) had a history of at least 10 reviews.
+
+How many publications are there again with 0 rotten reviews of animated movies?
+```{r}
+always_fresh_10_publications = Publications_10_reviews%>%
+  filter(NumberRotten == 0)
+
+nrow(always_fresh_10_publications)
+```
+Of these 249 publications, only 10 had "perfect" or always fresh reviews for animated films. Definitely a statistical minority to always get a good rating.
+
+
+
+
+
+
+
 
 
 
